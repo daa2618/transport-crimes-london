@@ -1,11 +1,16 @@
 import sys
 from pathlib import Path
-from .logging_helper import BasicLogger
+utils_dir = Path(__file__).resolve().parent
+if not str(utils_dir) in sys.path:
+    sys.path.insert(0, str(utils_dir))
+
+
+from logging_helper import BasicLogger
 
 _bl = BasicLogger(verbose=False, log_directory=None, logger_name="DATA_LOADER")
 
 import os, re, json, pandas as pd, io
-from .response import Response
+from response import Response
 import urllib.parse as urlparser
 #from opExcel import MoreOpenPyExcel
 #from extractZipFile import ExtractZipFile

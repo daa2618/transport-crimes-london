@@ -1,12 +1,18 @@
 
 from pathlib import Path
 import sys
-pardir = Path(__file__).resolve().parent.parent
-if not str(pardir) in sys.path:
-    sys.path.insert(0, str(pardir))
-from data.tcl import TransportCrimeLondon
+utils_dir = Path(__file__).resolve().parent.parent/"utils"
+if not str(utils_dir) in sys.path:
+    sys.path.insert(0, str(utils_dir))
+
+from plotly_imports import *
+
+data_dir = utils_dir.parent/"data"
+if not str(data_dir) in sys.path:
+    sys.path.insert(0, str(data_dir))
+from tcl import TransportCrimeLondon
 import re, sys, os, datetime, numpy as np
-from utils.plotly_imports import *
+
 
 
 class TransportCrimePlotData:

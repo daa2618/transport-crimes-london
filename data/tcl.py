@@ -3,10 +3,10 @@ import pandas as pd, numpy as np, re, sys, os, datetime
 from london_data_store.api import LondonDataStore
 from pathlib import Path
 import sys
-pardir = Path(__file__).resolve().parent.parent
-if not str(pardir) in sys.path:
-    sys.path.insert(0, str(pardir))
-from utils.dataset import Dataset
+utils_dir = Path(__file__).resolve().parent.parent/"utils"
+if not str(utils_dir) in sys.path:
+    sys.path.insert(0, str(utils_dir))
+from dataset import Dataset
 
 class TransportCrimeLondon:
     def __init__(self):
@@ -19,7 +19,7 @@ class TransportCrimeLondon:
         return download_url[0]
 
     def get_df(self):
-        return Dataset(self.get_download_url).load_data()
+        return Dataset(doc_url = self.get_download_url).load_data()
 
 
     def get_clean_df(self):
