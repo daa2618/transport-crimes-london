@@ -1,0 +1,25 @@
+[project]
+name = "transport-crimes-london"
+version = "0.1.0"
+description = "Dashboard using plotly and dash to visualise transport crimes in London"
+authors = [
+    {name = "Dev Anand Anbarasu",email = "anand26dev@gmail.com"}
+]
+license = {text = "MIT License"}
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "london-data-store @ git+https://github.com/daa2618/london_data_store.git",
+    "pandas (>=2.3.1,<3.0.0)",
+    "numpy (>=2.3.2,<3.0.0)",
+    "dash (>=3.2.0,<4.0.0)",
+    "dash-bootstrap-components (>=2.0.3,<3.0.0)",
+    "plotly (>=6.2.0,<7.0.0)",
+    "gunicorn (>=23.0.0,<24.0.0)",
+    "pdfplumber (>=0.11.7,<0.12.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

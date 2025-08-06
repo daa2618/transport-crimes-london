@@ -1,10 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# In[ ]:
-
-
-from transportCrimePlots import TranportCrimePlots
+from .tcl_plots import TranportCrimePlots
 from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 import webbrowser, pandas as pd
@@ -16,7 +11,7 @@ class DashElements:
         return None
     
 
-    def generateStatsCard(self,title,value):
+    def generate_stats_card(self,title,value):
         return html.Div(dbc.Card([
             dbc.CardBody([
                 html.P(children=value,
@@ -33,24 +28,24 @@ class DashElements:
                                   fontWeight="bold"))
             ], style=dict(textAlign="center"))
         ], style=dict(paddingBlock="10px", 
-                     backgroundColor="steelblue",
+                     background_color="steelblue",
                      border = "none",
                      borderRadius="10px") 
         ))
     
     
 
-    def makeCardElements(self):
-        longDf = plots.makeLongDf()
+    def make_card_elements(self):
+        long_df = plots.make_long_df()
         df = plots.df
-        valueDf = longDf.loc[longDf["unit"]=="Vol"]
+        value_df = long_df.loc[long_df["unit"]=="Vol"]
 
-        reqModes = plots.getAvailableModes()
+        req_modes = plots.get_available_modes()
 
-        #avgCounts=valueDf.loc[valueDf["mode"].isin(reqModes)].groupby("mode")["value"].mean().reset_index()
-        avgValues = longDf.loc[(longDf["unit"].isin(["Rate", "Vol"]))&
-          (longDf["mode"].isin(reqModes))].groupby(["mode", "unit"])["value"].mean().reset_index()
-        df=pd.pivot(avgValues,columns="unit", values="value", index="mode").reset_index()
+        #avgCounts=value_df.loc[value_df["mode"].isin(req_modes)].groupby("mode")["value"].mean().reset_index()
+        avg_values = long_df.loc[(long_df["unit"].isin(["Rate", "Vol"]))&
+          (long_df["mode"].isin(req_modes))].groupby(["mode", "unit"])["value"].mean().reset_index()
+        df=pd.pivot(avg_values,columns="unit", values="value", index="mode").reset_index()
         df["value"]=df["Vol"].astype(int).astype(str) + " / " + df["Rate"].astype(int).astype(str)
 
         titles=df["mode"].apply(lambda x: x.upper().replace("_", " "))
@@ -59,14 +54,14 @@ class DashElements:
 
         cards={x:y for x,y in zip(titles, df["value"])}
 
-        cardElements = []
+        card_elements = []
         for title, value in cards.items():
             if not title == "ALL TRANSPORT MODES":
-                cardElements.append(self.generateStatsCard(title, value))
+                card_elements.append(self.generate_stats_card(title, value))
 
-        return cardElements
+        return card_elements
     
-    def makeContainerElements(self, title, backgroundColor):
+    def make_container_elements(self, title, background_color):
         return dbc.Row([
             dbc.Col(html.Div([
                 dbc.CardBody([
@@ -80,7 +75,7 @@ class DashElements:
                 ], style={"textAlign" : "center"})
             ], style = {
                 "paddingBlock" : "10px",
-                "backgroundColor" : backgroundColor,
+                "background_color" : background_color,
                 "border" : "none",
                 "borderRadius" : "10px"
             }))
@@ -88,7 +83,7 @@ class DashElements:
     
     
     @property
-    def tabStyle(self):
+    def tab_style(self):
         return {
     'idle':{
         'borderRadius': '10px',
@@ -98,7 +93,7 @@ class DashElements:
         'alignItems':'center',
         'justifyContent':'center',
         'fontWeight': 'bold',
-        'backgroundColor': 'antiquewhite',
+        'background_color': 'antiquewhite',
         'border':'none'
     },
     'active':{
@@ -111,26 +106,26 @@ class DashElements:
         'fontWeight': 'bold',
         'border':'none',
         'textDecoration': 'underline',
-        'backgroundColor': 'steelblue'
+        'background_color': 'steelblue'
     }}
     
-    def makeModeTabs(self):
+    def make_mode_tabs(self):
         tabs = ["overview"]
-        tabs.extend(plots.getAvailableModes())
+        tabs.extend(plots.get_available_modes())
         return [dcc.Tab(label=x.replace("_", " ").title(),
                        value=x.replace("_", "-").lower(),
-                       style=self.tabStyle["idle"],
-                       selected_style=self.tabStyle["active"]) for x in tabs]
+                       style=self.tab_style["idle"],
+                       selected_style=self.tab_style["active"]) for x in tabs]
     
     
-    def getOverViewPlots(self):
+    def get_overview_plots(self):
         
         return html.Div([
             html.Div([
-                dcc.Graph(id="figure-1", figure=plots.barPlotCrimes())
+                dcc.Graph(id="figure-1", figure=plots.bar_plot_crimes())
             ], style = {"width" : "100%", "display" : "inline-block"}),
             html.Div([
-                dcc.Graph(id="figure-2", figure=plots.plotYearlyJourneysAndCrimes())
+                dcc.Graph(id="figure-2", figure=plots.plot_yearly_journeys_and_crimes())
             ], style = {"width" : "100%", "display" : "inline-block"}),
             #html.Div([
              #   dcc.Graph(id="figure-3", figure=plots.plotOnboardsPie())
@@ -142,13 +137,13 @@ class DashElements:
         ])
     
     
-    def getPlotsForMode(self, mode):
+    def get_plots_for_mode(self, mode):
         return html.Div([
             html.Div([
-                dcc.Graph(id="figure-1", figure=plots.plotCrimesByMode(mode, plots.makeLongDf(), plots.getModeColors()))
+                dcc.Graph(id="figure-1", figure=plots.plot_crimes_by_mode(mode, plots.make_long_df(), plots.get_mode_colors()))
             ], style = {"width" : "100%", "display" : "inline-block"}),
             html.Div([
-                dcc.Graph(id="figure-2", figure=plots.plotCrimesVsRate(mode))
+                dcc.Graph(id="figure-2", figure=plots.plot_crimes_vs_rate(mode))
             ], style = {"width" : "100%", "display" : "inline-block"}),
             #html.Div([
              #   dcc.Graph(id="figure-3", figure=plots.plotOnboardsPie())

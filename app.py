@@ -1,37 +1,33 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
-
-from dashElements import *
-
-
-# In[4]:
+from pathlib import Path
+import sys
+pardir = Path(__file__).resolve().parent.parent
+if not str(pardir) in sys.path:
+    sys.path.insert(0, str(pardir))
+from elements.dash_elements import *
 
 
-appElements=DashElements()
+app_elements=DashElements()
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], title="London Tranport Crime Dashboard")
 server = app.server
 
 app.layout = html.Div([
-    appElements.makeContainerElements(title="London Transport Crime Dashboard", backgroundColor="antiquewhite"),
+    app_elements.make_container_elements(title="London Transport Crime Dashboard", backgroundColor="antiquewhite"),
     
     dbc.Row([
         dbc.Col(dcc.Tabs(id="mode-tabs", 
                          value="overview", 
-                         children=appElements.makeModeTabs(),
+                         children=app_elements.make_mode_tabs(),
                         style={'marginTop': '15px', 
                                'width':'2000px',
                                'height':'50px'}))
     ]),
     
-    appElements.makeContainerElements(title="Monthly Average Reported Crimes / Crimes Per Million Passenger Journeys", backgroundColor="steelblue"),
+    app_elements.make_container_elements(title="Monthly Average Reported Crimes / Crimes Per Million Passenger Journeys", backgroundColor="steelblue"),
     
     
     dbc.Row(
-        [dbc.Col(x, width=2) for x in appElements.makeCardElements()]
+        [dbc.Col(x, width=2) for x in app_elements.make_card_elements()]
     , style=dict(marginBlock="10px")),
     
     
@@ -48,22 +44,16 @@ app.layout = html.Div([
              Input("mode-tabs", "value"),
              )
 
-def getPlots(tab):
+def getPlots(tab:str):
     if tab == "overview":
-        return appElements.getOverViewPlots()
+        return app_elements.get_overview_plots()
     else:
         tab = tab.replace("-", "_").lower()
-        return appElements.getPlotsForMode(tab)
+        return app_elements.get_plots_for_mode(tab)
 
 
 if __name__ == "__main__":
     #webbrowser.open_new("http://127.0.0.1:8051/")
     app.run(debug=True #,use_reloader=False, port=8051
                   )
-
-
-# In[ ]:
-
-
-
 

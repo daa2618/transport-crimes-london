@@ -1,75 +1,76 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# In[ ]:
-
-
-from transportCrimeLondon import TransportCrimeLondon
+from pathlib import Path
+import sys
+pardir = Path(__file__).resolve().parent.parent
+if not str(pardir) in sys.path:
+    sys.path.insert(0, str(pardir))
+from data.tcl import TransportCrimeLondon
 import re, sys, os, datetime, numpy as np
-#sys.path.append(os.path.join(git.Repo(".", search_parent_directories=True).working_tree_dir, "Plotly"))
-from plotlyImports import *
-#from savePlot import SavePlot
+from utils.plotly_imports import *
+
 
 class TransportCrimePlotData:
     def __init__(self):
-        self.df = TransportCrimeLondon().getTransportCrimesData()
+        self._df = None
+
+    @property
+    def df(self):
+        if self._df is None:
+            self._df = TransportCrimeLondon().get_transport_crimes_data()
+        return self._df
+
+    def make_long_df(self):
+        long_df=pd.melt(self.df, id_vars=["month_year", "unit", "fy", "startYear", "endYear", "date", "year", "month"]).rename(columns={"variable" : "mode"})
         
-    def makeLongDf(self):
-        longDf=pd.melt(self.df, id_vars=["monthYear", "unit", "fy", "startYear", "endYear", "date", "year", "month"]).rename(columns={"variable" : "mode"})
-        
-        return longDf
+        return long_df
     
-    def getAllTranportModes(self):
-        return self.makeLongDf()["mode"].unique()
+    def get_all_transport_modes(self):
+        return self.make_long_df()["mode"].unique()
     
-    def getModeColors(self):
-        modes = self.getAllTranportModes()
+    def get_mode_colors(self):
+        modes = self.get_all_transport_modes()
         colors = {x:y for x,y in zip(modes, px.colors.qualitative.Dark24)}
         return colors
     
-    def getAvailableModes(self):
-        reqModes = self.df.iloc[-1][self.df.iloc[-1].notna()].index
-        modes = self.makeLongDf()["mode"].unique()
-        return list(set(modes).intersection(reqModes))
+    def get_available_modes(self):
+        req_modes = self.df.iloc[-1][self.df.iloc[-1].notna()].index
+        modes = self.make_long_df()["mode"].unique()
+        return list(set(modes).intersection(req_modes))
     
-    def getTripsByYear(self):
-        longDf = self.makeLongDf()
-        for monthYear in longDf["monthYear"].unique():
-            longDf.loc[(longDf["monthYear"]==monthYear)&
-                  (longDf["unit"]=="Vol")&
-                  (longDf["mode"]=="all_transport_modes"), "value"] = longDf.loc[(longDf["monthYear"]==monthYear)&
-                      (longDf["unit"]=="Vol")&
-                      (longDf["mode"]!="all_transport_modes"), "value"].sum()
+    def get_trips_by_year(self):
+        long_df = self.make_long_df()
+        for month_year in long_df["month_year"].unique():
+            long_df.loc[(long_df["month_year"]==month_year)&
+                  (long_df["unit"]=="Vol")&
+                  (long_df["mode"]=="all_transport_modes"), "value"] = long_df.loc[(long_df["month_year"]==month_year)&
+                      (long_df["unit"]=="Vol")&
+                      (long_df["mode"]!="all_transport_modes"), "value"].sum()
 
-            longDf.loc[(longDf["monthYear"]==monthYear)&
-                  (longDf["unit"]=="passengerJourneys")&
-                  (longDf["mode"]=="all_transport_modes"), "value"] = longDf.loc[(longDf["monthYear"]==monthYear)&
-                      (longDf["unit"]=="passengerJourneys")&
-                      (longDf["mode"]!="all_transport_modes"), "value"].sum()
+            long_df.loc[(long_df["month_year"]==month_year)&
+                  (long_df["unit"]=="passenger_journeys")&
+                  (long_df["mode"]=="all_transport_modes"), "value"] = long_df.loc[(long_df["month_year"]==month_year)&
+                      (long_df["unit"]=="passenger_journeys")&
+                      (long_df["mode"]!="all_transport_modes"), "value"].sum()
             
-        df=longDf.loc[longDf["unit"].isin(["Vol", "passengerJourneys"])].groupby(["year", "unit"])["value"].sum().reset_index().rename(columns={"value":"observation"})
+        df=long_df.loc[long_df["unit"].isin(["Vol", "passenger_journeys"])].groupby(["year", "unit"])["value"].sum().reset_index().rename(columns={"value":"observation"})
 
         df=pd.pivot(df, columns="unit", index="year", values="observation").reset_index()
 
-        df["Rate"]=(df["Vol"] / df["passengerJourneys"]) * 1000000
+        df["Rate"]=(df["Vol"] / df["passenger_journeys"]) * 1000000
         
         
         return df
-
 class TranportCrimePlots(TransportCrimePlotData):
     def __init__(self):
-        self.df = TransportCrimeLondon().getTransportCrimesData()
-        return None
-        #super().__init__(self.df)
+        super().__init__()
         
-        
-    def makeHoverTemplateForTime(self, time):
+    def make_hover_template_for_time(self, time):
         if time == "month":
             return "<b>Month :</b> %{customdata[0]}<br>"
         elif time == "year":
             return "<b>Year :</b> %{customdata[0]}<br>"
         
-    def updateMonthAxes(self, fig, time):
+    def update_month_axes(self, fig, time):
         
         if time == "month":
             fig = fig.update_xaxes(tickmode="array",
@@ -81,25 +82,25 @@ class TranportCrimePlots(TransportCrimePlotData):
         
         
         
-    def plotMonthlyAverageCrimes(self, time):
-        longDf = self.makeLongDf()
-        reqModes = self.getAvailableModes()
+    def plot_monthly_average_crimes(self, time):
+        long_df = self.make_long_df()
+        req_modes = self.get_available_modes()
         
-        groupedDf = longDf.loc[(longDf["unit"]=="Vol") & 
-                      (longDf["mode"].isin(reqModes))].groupby([time, "mode"])["value"].mean().dropna().reset_index()
+        grouped_df = long_df.loc[(long_df["unit"]=="Vol") & 
+                      (long_df["mode"].isin(req_modes))].groupby([time, "mode"])["value"].mean().dropna().reset_index()
 
         fig = go.Figure()
-        colors = self.getModeColors()
+        colors = self.get_mode_colors()
         
-        for mode in groupedDf["mode"].unique():
+        for mode in grouped_df["mode"].unique():
             if mode != "all_transport_modes":
-                filtered = groupedDf.loc[groupedDf["mode"]==mode]
+                filtered = grouped_df.loc[grouped_df["mode"]==mode]
                 fig.add_trace(go.Bar(x=filtered[time],
                                     y=filtered["value"],
                                     name=mode,
                                     marker_color=colors[mode],
                                     customdata=filtered[[time, "mode"]],
-                                         hovertemplate=self.makeHoverTemplateForTime(time)+
+                                         hovertemplate=self.make_hover_template_for_time(time)+
                                          "<b>Tranport Mode :</b> %{customdata[1]}<br>" + 
                                          "<b>Reported Crimes : </b> %{y:,.0f}<br>" +
                                          "<extra></extra>"))
@@ -109,34 +110,34 @@ class TranportCrimePlots(TransportCrimePlotData):
                           title=f"<b>Monthly Average Reported Crimes</b><br><sup>By {time.title()} and Transport Mode</sup>",
                           legend=dict(title="Transport Modes",
                                                       orientation="h"))
-        fig.update_xaxes(title=time, tickvals=(groupedDf[time].unique()))
+        fig.update_xaxes(title=time, tickvals=(grouped_df[time].unique()))
         fig.update_yaxes(title="Reported Crimes")
-        fig = self.updateMonthAxes(fig, time)
+        fig = self.update_month_axes(fig, time)
         return fig
     
     
-    def plotCrimesVsRate(self, mode):
-        longDf = self.makeLongDf()
+    def plot_crimes_vs_rate(self, mode):
+        long_df = self.make_long_df()
         
         fig = make_subplots(specs=[[{"secondary_y" : True}]])
 
-        colors = {x:y for x,y in zip(longDf["unit"].unique(), ["steelblue", "antiquewhite"])}
+        colors = {x:y for x,y in zip(long_df["unit"].unique(), ["steelblue", "antiquewhite"])}
 
-        filtered = longDf.loc[longDf["mode"]==mode].dropna()
-        units=longDf["unit"].unique()
-        valueDf = filtered.loc[filtered["unit"]==units[0]]
+        filtered = long_df.loc[long_df["mode"]==mode].dropna()
+        units=long_df["unit"].unique()
+        value_df = filtered.loc[filtered["unit"]==units[0]]
 
-        fig.add_trace(go.Scatter(y=valueDf["value"],
-                        x=np.array(valueDf["date"]),
+        fig.add_trace(go.Scatter(y=value_df["value"],
+                        x=np.array(value_df["date"]),
                         marker_color=colors[units[0]],
 
                             mode="markers+lines",
                             name="Reported Crimes",
                                  meta="Reported Crimes",
                                 ))
-        valueDf = filtered.loc[filtered["unit"]==units[1]]
-        fig.add_trace(go.Scatter(y=valueDf["value"],
-                        x=np.array(valueDf["date"]),
+        value_df = filtered.loc[filtered["unit"]==units[1]]
+        fig.add_trace(go.Scatter(y=value_df["value"],
+                        x=np.array(value_df["date"]),
                         marker_color=colors[units[1]],
 
                             mode="markers+lines",
@@ -158,19 +159,19 @@ class TranportCrimePlots(TransportCrimePlotData):
         return fig
     
     
-    def plotCrimesByMode(self, mode, longDf, colors):
-        #longDf = self.makeLongDf()
-        #colors=self.getModeColors()
+    def plot_crimes_by_mode(self, mode, long_df, colors):
+        #long_df = self.make_long_df()
+        #colors=self.get_mode_colors()
         fig = go.Figure()
-        valueDf = longDf.loc[longDf["unit"]=="Vol"]
-        filtered = valueDf.loc[valueDf["mode"]==mode].dropna()
+        value_df = long_df.loc[long_df["unit"]=="Vol"]
+        filtered = value_df.loc[value_df["mode"]==mode].dropna()
         fig.add_trace(go.Bar(y=filtered["value"],
                             x=np.array(filtered["date"]),
                             marker_color=colors[mode],
                                 #mode="markers+lines",
                                 name=mode.replace("_", " ").title(),
                                  meta=mode.replace("_", " ").title(),
-                            customdata=filtered[["monthYear"]],
+                            customdata=filtered[["month_year"]],
                             #hovertemplate="<b>Month :</b> %{x}<br><b>Reported Crimes : </b>%{y}<br><extra></extra>"
                                 hovertemplate="<b>Month :</b> %{customdata[0]}<br>"+
                                      "<b>Tranport Mode :</b> %{meta}<br>" + 
@@ -185,16 +186,16 @@ class TranportCrimePlots(TransportCrimePlotData):
         
         return fig
     
-    def barPlotCrimes(self):
-        longDf = self.makeLongDf()
-        modes = self.getAllTranportModes()
-        colors = self.getModeColors()
+    def bar_plot_crimes(self):
+        long_df = self.make_long_df()
+        modes = self.get_all_transport_modes()
+        colors = self.get_mode_colors()
     
         fig = go.Figure()
-        valueDf = longDf.loc[longDf["unit"]=="Vol"]
+        value_df = long_df.loc[long_df["unit"]=="Vol"]
         for mode in modes:
             if mode != "all_transport_modes":
-                fig.add_trace(self.plotCrimesByMode(mode, longDf, colors).data[0])
+                fig.add_trace(self.plot_crimes_by_mode(mode, long_df, colors).data[0])
 
         fig.update_layout(title="<b>London Crime Statistics</b><br><sup>By Transport Mode</sup>",
                           barmode="stack", #barnorm="percent", 
@@ -211,13 +212,13 @@ class TranportCrimePlots(TransportCrimePlotData):
         return fig
     
     
-    def plotYearlyJourneysAndCrimes(self):
-        df = self.getTripsByYear()
+    def plot_yearly_journeys_and_crimes(self):
+        df = self.get_trips_by_year()
         
         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, specs=[[{"secondary_y":True}], [{}]])
 
         cols = {"Vol" : "Reported Crimes", 
-               "passengerJourneys" : "Passenger Journerys",
+               "passenger_journeys" : "Passenger Journerys",
                "Rate" : "Crimes Per Million Passenger Journeys"}
 
         colors = {x:y for x,y in zip(cols.keys(), px.colors.qualitative.Dark24)}
@@ -236,7 +237,7 @@ class TranportCrimePlots(TransportCrimePlotData):
                                 name=cols[col],
                                 meta=cols[col]),
                      row=1, col=1, secondary_y=True)
-        col="passengerJourneys"
+        col="passenger_journeys"
         fig.add_trace(go.Scatter(x=df["year"],
                                 y=df[col],
                                 marker_color=colors[col],
