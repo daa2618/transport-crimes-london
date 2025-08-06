@@ -12,7 +12,7 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], title="London 
 server = app.server
 
 app.layout = html.Div([
-    app_elements.make_container_elements(title="London Transport Crime Dashboard", backgroundColor="antiquewhite"),
+    app_elements.make_container_elements(title="London Transport Crime Dashboard", background_color="antiquewhite"),
     
     dbc.Row([
         dbc.Col(dcc.Tabs(id="mode-tabs", 
@@ -23,7 +23,7 @@ app.layout = html.Div([
                                'height':'50px'}))
     ]),
     
-    app_elements.make_container_elements(title="Monthly Average Reported Crimes / Crimes Per Million Passenger Journeys", backgroundColor="steelblue"),
+    app_elements.make_container_elements(title="Monthly Average Reported Crimes / Crimes Per Million Passenger Journeys", background_color="steelblue"),
     
     
     dbc.Row(
@@ -53,7 +53,7 @@ def getPlots(tab:str):
 
 
 if __name__ == "__main__":
-    #webbrowser.open_new("http://127.0.0.1:8051/")
-    app.run(debug=True #,use_reloader=False, port=8051
+    webbrowser.open_new("http://127.0.0.1:8051/")
+    app.run(debug=True ,use_reloader=False, port=8051
                   )
 
