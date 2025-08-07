@@ -1,6 +1,7 @@
 
 from pathlib import Path
 import sys
+import pandas as pd
 utils_dir = Path(__file__).resolve().parent.parent/"utils"
 if not str(utils_dir) in sys.path:
     sys.path.insert(0, str(utils_dir))
@@ -26,7 +27,7 @@ class TransportCrimePlotData:
         return self._df
 
     def make_long_df(self):
-        long_df=pd.melt(self.df, id_vars=["month_year", "unit", "fy", "startYear", "endYear", "date", "year", "month"]).rename(columns={"variable" : "mode"})
+        long_df=pd.melt(self.df, id_vars=["month_year", "unit", "fy", "start_year", "end_year", "date", "year", "month"]).rename(columns={"variable" : "mode"})
         
         return long_df
     

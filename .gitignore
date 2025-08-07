@@ -5,6 +5,7 @@ venv
 .env
 .venv
 utils
+notebooks
 =======
 # Byte-compiled / optimized / DLL files
 __pycache__/
