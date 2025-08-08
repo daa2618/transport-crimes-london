@@ -61,7 +61,6 @@ Contributions welcome! You can help by:
 - Submitting bug reports or feature requests via Issues
 - Improving documentation
 - Writing tests or fixing bugs
-- Extending API support (e.g., stop-and-search, priorities)
 
 Please open a PR or reach out via GitHub Issues.
 
